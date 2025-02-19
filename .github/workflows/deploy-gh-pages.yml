@@ -3,7 +3,7 @@ name: Deploy Quarto Site to GitHub Pages
 on:
   push:
     branches:
-      - main  # Change this to your default branch if it's not 'main'
+      - main
 
 jobs:
   deploy:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
-          version: latest
+          version: 1.4.553  # Specify a valid Quarto version explicitly
 
       - name: Render Quarto site
         run: |

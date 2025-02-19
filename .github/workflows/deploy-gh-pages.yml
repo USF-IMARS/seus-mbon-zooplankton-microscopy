@@ -1,9 +1,12 @@
 name: Deploy Quarto Site to GitHub Pages
+permissions: 
+    contents: write
+    pages: write
 
 on:
   push:
     branches:
-      - main  # Change this to your default branch if it's not 'main'
+      - main
 
 jobs:
   deploy:
@@ -18,22 +21,22 @@ jobs:
         with:
           r-version: '4.3.1'  # Specify the R version you need
 
+      # TODO: use renv instead [ref](https://github.com/quarto-dev/quarto-actions/blob/main/examples/example-03-dependencies.md#using-renv-to-manage-r-packages)
       - name: Install required R packages
         run: |
-          Rscript -e 'install.packages(c("quarto", "rmarkdown", "ggplot2"))'
+          Rscript -e 'install.packages(c("quarto", "rmarkdown", "ggplot2", "here"))'
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: 1.4.553  # Specify a valid Quarto version explicitly
-
-      - name: Render Quarto site
-        run: |
-          quarto render qmd --to html
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+          # To install LaTeX to build PDF book 
+          tinytex: true 
+          
+      - name: Publish to GitHub Pages (and render) 
+        uses: quarto-dev/quarto-actions/publish@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: qmd/_site  # Adjust this path if your output directory is different
-          destination_dir: .      # Publish to the root of the gh-pages branch
+          target: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # this secret is always available for github actions

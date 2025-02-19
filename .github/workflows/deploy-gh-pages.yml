@@ -20,7 +20,7 @@ jobs:
 
       - name: Install required R packages
         run: |
-          Rscript -e 'install.packages(c("quarto", "rmarkdown"))'
+          Rscript -e 'install.packages(c("quarto", "rmarkdown", "ggplot2"))'
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2

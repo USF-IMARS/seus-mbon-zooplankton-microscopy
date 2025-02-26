@@ -21,11 +21,11 @@ jobs:
         with:
           r-version: '4.3.1'  # Specify the R version you need
 
-      # TODO: use renv instead [ref](https://github.com/quarto-dev/quarto-actions/blob/main/examples/example-03-dependencies.md#using-renv-to-manage-r-packages)
       - name: Install required R packages
-        run: |
-          Rscript -e 'install.packages(c("quarto", "rmarkdown", "ggplot2", "here", "skimr"))'
-
+        uses: r-lib/actions/setup-renv@v2
+        with:
+          cache-version: 1
+          
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         env:

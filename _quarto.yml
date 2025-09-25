@@ -1,0 +1,22 @@
+project:
+  type: website
+
+website:
+  title: "SEUS MBON Zooplankton Microscopy Analyses"
+  navbar:
+    left:
+      - text: Analyses
+        menu:
+          - qmd/mbon_zoo_viz.qmd
+          - qmd/simple_csv_check.qmd
+        
+      - href: https://github.com/usf-imars/seus-mbon-zooplankton-microscopy
+        text: Source Code on GitHub
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    code-fold: true
+    message: false
+    warning: false

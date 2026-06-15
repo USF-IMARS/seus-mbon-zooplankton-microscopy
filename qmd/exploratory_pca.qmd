@@ -32,7 +32,7 @@ conflicts_prefer(
   dplyr::filter(), 
   dplyr::select()
   )
-  
+
 
 ```
 
@@ -53,8 +53,19 @@ taxa_func <- function(..., incld_lvl = TRUE) {
   if (incld_lvl) {
     taxa_name <- glue("{taxa_name} ({names(taxa_name)})")
   }
+  
+  tibble(
+    taxa_name = taxa_name,
+    taxa_lvl  = names(taxa_name)
+  )
+  
   return(taxa_name)
 }
+
+# order of taxonomic classification
+taxa_tree <- 
+  c("kingdom", "phylum", "class", "order", "family", "genus", "scientificname") %>%
+  rev()
 ```
 
 # 3.0 Load Dataset
@@ -91,9 +102,14 @@ dat <-
   print()
 ```
 
+# 4.0 Cut Taxa Tree to Lowest Level
 
 
-```{r constant-copepod}
+#$ 4.1 Select Level to Cut Taxa and Mesh Size
+
+Change `taxa_lvl` to be lowest level needed.
+
+```{r constant-cut-taxa-tree}
 #| echo: false
 const <- list(
   taxa_lvl = "class", # lowest taxa level
@@ -101,35 +117,32 @@ const <- list(
   # site     = "WS"      # site
 )
 
-# order of taxonomic classification
-taxa_tree <- 
-  c("kingdom", "phylum", "class", "order", "family", "genus", "scientificname") %>%
-  rev()
-
 # set lowest level
 const$taxa_lvl <- taxa_tree[which(taxa_tree == const$taxa_lvl):length(taxa_tree)]
 
 const
 ```
+## 4.2 Filter and Cut Taxa
 
-```{r}
-dat_w <- 
+```{r cut-taxa-mesh}
+# dat_w <- 
   dat %>%
   filter(
-    (mesh == 200) # mesh size
-    & is.na(lifeStage)            # assumed na is adult
+    mesh == const$mesh   # mesh size
+    & is.na(lifeStage)   # assumed na is adult
   ) %>% 
   mutate(
     site = fct(site, c("MR", "LK", "WS")),
     station = fct(station, c("Molasses Reef", "Looe Key (deep)", "Western Sambo")), 
+    
     # select the lowest taxa name available
     taxa_level = pmap(
       across(c(const$taxa_lvl)),
-      # incld_lvl = FALSE,
+      incld_lvl = FALSE,
       taxa_func
     ),
   ) %>%
-  unnest(taxa_level) %>%
+  unnest(taxa_level) %>% 
   summarise(
     .by = c(station, site, mesh, year, date_month, taxa_level),
     # ind_m3 = mean(ind_m3)

@@ -48,9 +48,10 @@ Load microscopy metadata
 zoo_time <-
   here("data") %>%
   dir_ls(regexp = "obis_merg") %>%
-  read_csv(show_col_types = FALSE) %>%
+  read_csv(show_col_types = FALSE) %T>%
+  print() %>%
   select(cruise_id, site, station, mesh, date_time, date, time_gmt, lat_in,
-         lon_in) %>%
+         lon_in, volume_filt_cubic_m, vol_notes) %>%
   distinct() %>%
   mutate(
     date = as_date(date),
@@ -86,12 +87,26 @@ zoo_time <-
   print()
 
 zoo_time %>%
-  count(day)
+  filter(!str_detect(station, "\\d")) %>%
+  count(day_night)
 
 zoo_time %>%
-  count(mesh, day)
+  filter(!str_detect(station, "\\d")) %>%
+  count(mesh, day_night)
+
 zoo_time %>%
-  count(station, day)
+  filter(!str_detect(station, "\\d")) %>%
+  count(station, day_night)
+
+zoo_time %>%
+  count(vol_notes, day_night)
+zoo_time %>%
+  filter(!str_detect(station, "\\d")) %>%
+  count(station, vol_notes, day_night)
+
+zoo_time %>%
+  filter(!str_detect(station, "\\d")) %>%
+  count(station, vol_notes)
 ```
 
 

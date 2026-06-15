@@ -1,0 +1,130 @@
+---
+title: "MBON Ecotaxa Data Exploration"
+author: "Sebastian Di Geronimo"
+date: 2026-06-15
+format: html
+editor: source
+---
+
+# 1.0 ---- Summary of Document ----
+
+
+
+# 2.0 ---- Setup ----
+
+
+## 2.1 Load Libraries
+
+```{r setup, include=FALSE}
+if (!nzchar(system.file(package = "librarian"))) 
+  install.packages("librarian")
+
+librarian::shelf(
+  quiet = TRUE,
+  librarian, conflicted, ggplot2, tibble, tidyr, readr, purrr, dplyr, stringr,
+  forcats, lubridate, glue, fs, magrittr, here,
+  
+  # additional
+  
+)
+
+conflicts_prefer(
+  dplyr::filter(), 
+  dplyr::select()
+  )
+  
+
+```
+
+## 2.2 Load Dataset
+
+```{r load-data}
+rstudioapi::selectDirectory()
+dir_path <- "C://Users/spd19/Box/zooplankton_in_progress/planktoscopes/ps_u180/ecotaxa_export"
+eco_dat <- 
+  dir_path %>%
+  dir_ls(regexp = "summary") %>%
+  dir_ls() %>%
+  read_tsv(show_col_types = FALSE) %>%
+  filter(str_detect(acquisid, "200um")) %>%
+  mutate(
+    across(1:2, ~ str_remove(.x, "_real"))
+  ) %T>% 
+  print()
+
+if (FALSE) {
+taxa_list <- distinct(eco_dat, taxonid) %T>%
+  print()
+taxa_obis <-
+  taxa_list %$%
+  obistools::match_taxa(taxonid)
+
+full_taxa <- 
+  bind_cols(
+      taxa_list,
+      taxa_obis
+    ) %>%
+  mutate(aphiaid = str_extract(scientificNameID, "\\d+")) %T>% 
+  print()
+
+  writexl::write_xlsx(
+    full_taxa,
+    here(dir_path, "mbon_master_taxa.xlsx")
+  )
+}
+```
+
+```{r}
+eco_dat %>%
+  distinct(sampleid)
+eco_dat %>%
+  distinct(acquisid)
+eco_dat %>%
+  distinct(status)
+```
+```{r}
+eco_total <- 
+  eco_dat %>%
+  # sum by aquisition
+  summarise(
+    .by = c(sampleid, acquisid, taxonid),
+    count_total_per_sample = sum(count, na.rm = TRUE)
+  ) %>%
+  # sum by sample
+  summarise(
+    .by = c(sampleid, taxonid),
+    count_total = sum(count_total_per_sample, na.rm = TRUE)
+  ) %T>% 
+  print()
+  
+```
+
+```{r}
+eco_total %>%
+  nest(.by = sampleid) %>%
+  filter(str_detect(sampleid, "(?i)mr")) %$%
+  # slice(1) %$%
+  map2(
+    data,
+    sampleid,
+    \(.x, .y) {
+      dat_title <- .y
+      print(.y)
+
+      # . %>%
+      # unnest(.x, data) %>%
+        # filter(str_detect(sampleid, "sfer_mbon_hg26045_lk_200um_20260218")) %>%
+      .x %>%
+        filter(count_total >= 1) %>%
+        ggplot(aes(x = taxonid, y = count_total)) +
+        geom_point() +
+        labs(title = dat_title) +
+        coord_flip() +
+        theme(
+          # axis.text.x = element_text(angle = 90)
+        )
+    }
+  )
+```
+
+
